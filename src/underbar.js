@@ -239,15 +239,21 @@
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+    // if (iterator === undefined) {
+    //   return _.reduce(collection, function(accum, value) {
+    //     return !value ? accum : accum = true;
+    //   }, false);
+    // } else {
+    //   return _.reduce(collection, function(accum, value) {
+    //     return !iterator (value) ? accum : accum = true;
+    //   }, false);
+    // }
     if (iterator === undefined) {
-      return _.reduce(collection, function(accum, value) {
-        return !value ? accum : accum = true;
-      }, false);
-    } else {
-      return _.reduce(collection, function(accum, value) {
-        return !iterator (value) ? accum : accum = true;
-      }, false);
+      iterator = _.identity;
     }
+    return !(_.every(collection, function(value) {
+      return !iterator(value);
+    }));
 
   };
 
@@ -344,18 +350,16 @@
   _.memoize = function(func) {
     var args = Array.prototype.slice.call(arguments);
     args = args.slice(1);
-    var alreadyCalled = false;
     var resultObj = {};
     var result;
 
     return function() {
-      if (!alreadyCalled && resultObj[args] === undefined) {
+      if (resultObj[args] === undefined) {
         result = func.apply(this, arguments);
         resultObj[args] = result;
-        alreadyCalled = true;
       }
+      return resultObj[args];
     };
-    return resultObj[args];
   };
 
   // Delays a function for the given number of milliseconds, and then calls
