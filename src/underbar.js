@@ -212,15 +212,43 @@
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
-    return _.reduce(collection, function(value) {
-      return iterator(value);
-    }, true);
+    // iterator = iterator || _.identity;
+    
+    // var result = true;
+
+    // _.each(collection, function(value) {
+    //   if ( !iterator(value) ) {
+    //     result = false;
+    //   }
+    // });
+
+
+    // return result;
+    if (iterator === undefined) {
+      return _.reduce(collection, function(accum, value) {
+        return value ? accum : accum = false;
+      }, true);
+    } else {
+      return _.reduce(collection, function(accum, value) {
+        return iterator (value) ? accum : accum = false;
+      }, true);
+    }
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+    if (iterator === undefined) {
+      return _.reduce(collection, function(accum, value) {
+        return !value ? accum : accum = true;
+      }, false);
+    } else {
+      return _.reduce(collection, function(accum, value) {
+        return !iterator (value) ? accum : accum = true;
+      }, false);
+    }
+
   };
 
 
@@ -243,11 +271,34 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    var args = Array.prototype.slice.call(arguments);
+
+    // _.each(args.slice(1), function(obj) {
+    //   _.each(obj, function(value, key) {
+    //     args[0][key] = value;
+    //   });
+    // });
+    // return args[0];
+    for (var i = 1; i < args.length; i++) {
+      for (var key in args[i]) {
+        obj[key] = args[i][key];
+      }
+    }
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    var args = Array.prototype.slice.call(arguments);
+    _.each(args.slice(1), function(obj) {
+      _.each(obj, function(value, key) {
+        if (args[0][key] === undefined) {
+          args[0][key] = value;
+        }
+      });
+    });
+    return args[0];
   };
 
 
@@ -291,6 +342,20 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    var args = Array.prototype.slice.call(arguments);
+    args = args.slice(1);
+    var alreadyCalled = false;
+    var resultObj = {};
+    var result;
+
+    return function() {
+      if (!alreadyCalled && resultObj[args] === undefined) {
+        result = func.apply(this, arguments);
+        resultObj[args] = result;
+        alreadyCalled = true;
+      }
+    };
+    return resultObj[args];
   };
 
   // Delays a function for the given number of milliseconds, and then calls
